@@ -1,8 +1,8 @@
 import { Column, HasMany, Model, Table } from 'sequelize-typescript';
-import { Hero } from './hero.model';
+import { Hero } from '../hero/hero.model';
 
-@Table({ tableName: 'universes' })
-class Universe extends Model<Universe> {
+@Table({ tableName: 'universes', createdAt: false, updatedAt: false })
+class Universe extends Model {
   @Column({ primaryKey: true })
   id: number;
 

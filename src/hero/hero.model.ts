@@ -5,10 +5,10 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { Universe } from './universe.model';
+import { Universe } from '../universe/universe.model';
 
-@Table({ tableName: 'heroes' })
-class Hero extends Model<Hero> {
+@Table({ tableName: 'heroes', createdAt: false, updatedAt: false })
+class Hero extends Model {
   @Column({ primaryKey: true })
   id: number;
 

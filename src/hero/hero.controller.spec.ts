@@ -26,7 +26,7 @@ describe('HeroController', () => {
         {
           provide: HeroService,
           useValue: {
-            findHeroesWithCape: jest.fn(() => [h1, h2]),
+            find: jest.fn(() => [h1, h2]),
           },
         },
       ],
@@ -40,7 +40,7 @@ describe('HeroController', () => {
       const params = {
         universe: 'marvel',
       };
-      expect(heroController.findHeroesWithCape(params)).toEqual([h1, h2]);
+      expect(heroController.find(params)).toEqual([h1, h2]);
     });
   });
 });

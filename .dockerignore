@@ -13,7 +13,4 @@ Dockerfile
 node_modules
 dist
 
-.env.sample
-envs
-
 README.md

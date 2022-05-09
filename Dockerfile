@@ -1,63 +1,68 @@
-# PRODUCTION DOCKERFILE
-# ---------------------
-# This Dockerfile allows to build a Docker image of the NestJS application
-# and based on a NodeJS 14 image. The multi-stage mechanism allows to build
-# the application in a "builder" stage and then create a lightweight production
-# image containing the required dependencies and the JS build files.
 #
-# Dockerfile best practices
-# https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
-# Dockerized NodeJS best practices
-# https://github.com/nodejs/docker-node/blob/master/docs/BestPractices.md
-# https://www.bretfisher.com/node-docker-good-defaults/
-# http://goldbergyoni.com/checklist-best-practice-of-node-js-in-production/
-
+# Base build image
 #
-# TS -> transpilation to JS in dist/
-#
-FROM node:14-alpine as builder
+FROM node:16-alpine as base-build
 
 ENV NODE_ENV build
 
 USER node
 WORKDIR /home/node
 
-COPY . /home/node
-
-RUN npm ci \
-    && npm run build
+COPY package*.json ./
 
 #
-# npm ci with producation NODE_ENV
-# to get node_modules without dev dependencies
+# Prod Libs
 #
-FROM node:14-alpine as npm-container
+FROM base-build as install-prod-libs
+RUN npm ci --only=production
+
+#
+# Dev Libs
+#
+FROM install-prod-libs as install-dev-libs
+RUN npm ci --prefer-offline
+
+#
+# sources
+#
+FROM install-dev-libs as src
+
+COPY nest-cli.json ./
+COPY tsconfig*.json ./
+COPY src ./src
+
+#
+# tests (does not need transpilation to JS)
+#
+FROM src as tests
+
+COPY test ./test
+RUN npm run test
+RUN npm run test:e2e
+
+#
+# transpilation to JS in dist/
+#
+FROM src as make-dist
+
+RUN npm run build
+
+#
+# Runtime
+#
+FROM node:16-alpine
 
 ENV NODE_ENV production
 
-USER node
 WORKDIR /home/node
 
-COPY --from=builder /home/node/package*.json /home/node/
-COPY --from=builder /home/node/dist/ /home/node/dist/
-COPY --from=builder /home/node/cert/ /home/node/cert/
+RUN apk --no-cache add shadow
+RUN usermod -u 1000 node
+RUN groupmod -g 1000 node
 
-RUN npm ci
+COPY --from=make-dist /home/node/dist ./dist
+COPY --from=install-prod-libs /home/node/node_modules ./node_modules
 
-###
-### Slim Node Image
-###
-FROM mhart/alpine-node:slim-14 as node-container
-
-ENV NODE_ENV production
-
-WORKDIR /home/node
-
-COPY --from=npm-container /home/node/package*.json /home/node/
-COPY --from=npm-container /home/node/dist ./dist
-COPY --from=npm-container /home/node/cert ./cert
-COPY --from=npm-container /home/node/node_modules ./node_modules
-
-EXPOSE 3000/tcp
+EXPOSE 3000
 
 CMD ["node", "dist/main"]

@@ -1,12 +1,9 @@
 import { Sequelize } from 'sequelize-typescript';
 import { HeroService } from './hero.service';
 import { Hero } from './hero.model';
-import { Universe } from './universe.model';
+import { Universe } from '../universe/universe.model';
 import { createMemDB } from '../utils/testing-helpers/createMemDb';
-import {
-  createHero,
-  createUniverse,
-} from '../utils/testing-helpers/modelFactories';
+import { createHero } from '../utils/testing-helpers/modelFactories';
 
 describe('HeroService', () => {
   let heroService: HeroService;
@@ -27,8 +24,8 @@ describe('HeroService', () => {
 
     beforeEach(async () => {
       // Creation of our universes
-      marvel = await createUniverse(1, 'marvel');
-      dc = await createUniverse(2, 'dc');
+      marvel = await Universe.create({ id: 1, name: 'marvel' });
+      dc = await Universe.create({ id: 2, name: 'dc' });
     });
 
     afterEach(async () => {
@@ -41,7 +38,10 @@ describe('HeroService', () => {
       await createHero(1, 'Cap Marvel', true, marvel);
       await createHero(2, 'Hulk', false, marvel);
 
-      const actual = await heroService.findHeroesWithCape('marvel');
+      const actual = await heroService.find({
+        universe: 'marvel',
+        withCape: 'true',
+      });
 
       expect(actual.some((hero) => hero.name === 'Cap Marvel')).toBeTruthy();
       expect(actual.some((hero) => hero.name === 'Hulk')).toBeFalsy();
@@ -52,7 +52,10 @@ describe('HeroService', () => {
       await createHero(1, 'Bat Woman', true, dc);
       await createHero(2, 'Cap Marvel', true, marvel);
 
-      const actual = await heroService.findHeroesWithCape('marvel');
+      const actual = await heroService.find({
+        universe: 'marvel',
+        withCape: 'true',
+      });
 
       expect(actual.some((hero) => hero.name === 'Cap Marvel')).toBeTruthy();
       expect(actual.some((hero) => hero.name === 'Bat Woman')).toBeFalsy();
