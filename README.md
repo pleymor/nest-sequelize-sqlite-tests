@@ -23,9 +23,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-You can use docker-compose to test the image:
-
-```shell
-docker-compose up
-```
