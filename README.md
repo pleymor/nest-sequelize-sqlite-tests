@@ -24,16 +24,6 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-### Locally build and push image
-
-```shell
-docker build -t dockeregistry.azurecr.io/chatbot-sopi-service-auth -t dockeregistry.azurecr.io/chatbot-sopi-service-auth:2021.04.26-1 .
-```
-
-```shell
-docker push dockeregistry.azurecr.io/chatbot-sopi-service-auth -a
-```
-
 You can use docker-compose to test the image:
 
 ```shell
