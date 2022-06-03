@@ -18,7 +18,7 @@ describe('HeroService', () => {
   });
   afterAll(() => memDb.close());
 
-  describe('hasProductsWithBatteries', () => {
+  describe('find', () => {
     let marvel;
     let dc;
 
